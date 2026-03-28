@@ -1,0 +1,11 @@
+node_modules/
+frontend/node_modules/
+dist/
+build/
+.env
+violation_tracking.db
+violation_images/
+uploads/
+runs/
+ppe_model.pt
+employee_photos/

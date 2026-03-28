@@ -1,0 +1,31 @@
+import { defineConfig } from 'vite'
+import react from '@vitejs/plugin-react'
+
+export default defineConfig({
+    plugins: [react()],
+    server: {
+        port: 5173,
+        proxy: {
+            '/api': {
+                target: 'http://127.0.0.1:8000',
+                changeOrigin: true
+            },
+            '/uploads': {
+                target: 'http://127.0.0.1:8000',
+                changeOrigin: true
+            },
+            '/snippets': {
+                target: 'http://127.0.0.1:8000',
+                changeOrigin: true
+            },
+            '/violation_images': {
+                target: 'http://127.0.0.1:8000',
+                changeOrigin: true
+            },
+            '/employee_photos': {
+                target: 'http://127.0.0.1:8000',
+                changeOrigin: true
+            }
+        }
+    }
+})
