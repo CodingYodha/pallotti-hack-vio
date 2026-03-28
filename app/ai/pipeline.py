@@ -603,6 +603,16 @@ class VideoPipeline:
             cap.release()
             out.release()
             
+            # Post-process for browser compatibility (h264 + yuv420p)
+            browser_compatible_path = final_output.replace(os.path.splitext(final_output)[1], '_web.mp4')
+            if self._convert_to_browser_compatible(final_output, browser_compatible_path):
+                try:
+                    if os.path.exists(final_output):
+                        os.remove(final_output)
+                except Exception as e:
+                    logger.warning(f"Could not remove original annotated video: {e}")
+                final_output = browser_compatible_path
+            
             annotated_path = final_output
             
             profiles = self.aggregator.get_all_profiles()

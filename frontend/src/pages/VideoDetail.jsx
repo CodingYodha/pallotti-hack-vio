@@ -241,6 +241,30 @@ function VideoDetail() {
                     </div>
                 )}
 
+                {/* Video Player */}
+                {video.status !== 'processing' && (
+                    <div className="card mb-8">
+                        <div className="card-header">
+                            <h3 className="card-title">
+                                {video.status === 'completed' && video.annotated_video_path 
+                                    ? 'Processed Video Analysis' 
+                                    : 'Original Video'}
+                            </h3>
+                        </div>
+                        <div className="card-body p-0">
+                            <video 
+                                src={getImageUrl(
+                                    video.status === 'completed' && video.annotated_video_path
+                                    ? video.annotated_video_path
+                                    : `/uploads/${video.filename}`
+                                )} 
+                                controls 
+                                style={{ width: '100%', maxHeight: '600px', borderRadius: '0 0 var(--radius-lg) var(--radius-lg)', background: '#000' }}
+                            />
+                        </div>
+                    </div>
+                )}
+
                 {/* Video Info */}
                 <div className="stats-grid mb-8">
                     <div className="stat-card">

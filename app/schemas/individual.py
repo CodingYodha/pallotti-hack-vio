@@ -28,6 +28,8 @@ class IndividualResponse(BaseModel):
     rejected_violations: int = 0
     pending_violations: int = 0
     risk_score: float = 0.0
+    is_fined: bool = False
+    fine_amount: float = 100.0
     worn_equipment: List[str] = []  # PPE items worn by this person
     employee_id: Optional[int] = None
     employee_name: Optional[str] = None
@@ -68,6 +70,11 @@ class IndividualPatternAnalysis(BaseModel):
     is_repeat_offender: bool = False
     risk_level: str = "low"  # low, medium, high
     violation_timeline: List[dict] = []
+
+
+class IndividualFineToggle(BaseModel):
+    """Schema to toggle the fine configuration."""
+    is_fined: bool
 
 
 # Fix forward reference

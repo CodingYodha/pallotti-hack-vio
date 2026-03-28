@@ -19,7 +19,7 @@ import {
     Moon,
     Sunset
 } from 'lucide-react'
-import { getVideos, uploadVideo, deleteVideo, getVideoStatus } from '../services/api'
+import { getVideos, uploadVideo, deleteVideo, getVideoStatus, getImageUrl } from '../services/api'
 
 function Videos() {
     const navigate = useNavigate()
@@ -537,7 +537,7 @@ function Videos() {
                     </div>
 
                     <video
-                        src={videoPlayer.annotated_video_path}
+                        src={getImageUrl(videoPlayer.annotated_video_path)}
                         controls
                         autoPlay
                         style={{

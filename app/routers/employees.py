@@ -56,6 +56,10 @@ async def get_employee(employee_id: int, db: AsyncSession = Depends(get_db)):
 async def create_employee(
     name: str = Form(...),
     photo: UploadFile = File(None),
+    email: Optional[str] = Form(None),
+    phone: Optional[str] = Form(None),
+    department: Optional[str] = Form(None),
+    role: Optional[str] = Form(None),
     db: AsyncSession = Depends(get_db)
 ):
     """
@@ -83,7 +87,11 @@ async def create_employee(
     emp = Employee(
         name=name,
         photo_path=photo_path,
-        face_encoding=face_encoding_json
+        face_encoding=face_encoding_json,
+        email=email,
+        phone=phone,
+        department=department,
+        role=role
     )
     db.add(emp)
     await db.flush()
@@ -100,6 +108,10 @@ async def update_employee(
     employee_id: int,
     name: Optional[str] = Form(None),
     photo: UploadFile = File(None),
+    email: Optional[str] = Form(None),
+    phone: Optional[str] = Form(None),
+    department: Optional[str] = Form(None),
+    role: Optional[str] = Form(None),
     db: AsyncSession = Depends(get_db)
 ):
     """Update an employee's name and/or photo."""
@@ -110,6 +122,14 @@ async def update_employee(
 
     if name:
         emp.name = name
+    if email is not None:
+        emp.email = email
+    if phone is not None:
+        emp.phone = phone
+    if department is not None:
+        emp.department = department
+    if role is not None:
+        emp.role = role
 
     if photo:
         # Delete old photo if exists

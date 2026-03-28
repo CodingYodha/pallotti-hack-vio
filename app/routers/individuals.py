@@ -13,7 +13,7 @@ from app.models.violation import Violation
 from app.schemas.individual import (
     IndividualResponse, IndividualDetailResponse, 
     IndividualListResponse, IndividualPatternAnalysis,
-    ViolationSummary
+    ViolationSummary, IndividualFineToggle
 )
 
 router = APIRouter()
@@ -213,3 +213,32 @@ async def analyze_individual(
         risk_level=risk_level,
         violation_timeline=timeline
     )
+
+
+@router.put("/{video_id}/{track_id}/fine")
+async def toggle_individual_fine(
+    video_id: int,
+    track_id: int,
+    toggle_request: IndividualFineToggle,
+    db: AsyncSession = Depends(get_db)
+):
+    """
+    Toggle the fine status for an individual.
+    """
+    result = await db.execute(
+        select(TrackedIndividual).where(
+            TrackedIndividual.video_id == video_id,
+            TrackedIndividual.track_id == track_id
+        )
+    )
+    individual = result.scalar_one_or_none()
+    
+    if not individual:
+        raise HTTPException(status_code=404, detail="Individual not found")
+        
+    individual.is_fined = 1 if toggle_request.is_fined else 0
+    # Fine amount is hardcoded as 100 on creation/default, so we just toggle the flag
+    
+    await db.commit()
+    return {"message": "Fine toggled successfully", "is_fined": bool(individual.is_fined)}
+

@@ -23,6 +23,11 @@ class Employee(Base):
     photo_path = Column(String(500), nullable=True)  # Path to profile photo
     face_encoding = Column(Text, nullable=True)  # JSON-serialized 128-d face encoding
     
+    email = Column(String(200), nullable=True)
+    phone = Column(String(50), nullable=True)
+    department = Column(String(100), nullable=True)
+    role = Column(String(100), nullable=True)
+    
     created_at = Column(DateTime, server_default=func.now())
     updated_at = Column(DateTime, onupdate=func.now())
     

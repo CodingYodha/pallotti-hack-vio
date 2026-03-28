@@ -107,6 +107,8 @@ export const getIndividuals = (videoId) => api.get(`/individuals/${videoId}`)
 export const getIndividual = (videoId, trackId) => api.get(`/individuals/${videoId}/${trackId}`)
 export const analyzeIndividual = (videoId, trackId) =>
     api.get(`/individuals/${videoId}/${trackId}/analysis`)
+export const toggleFine = (videoId, trackId, isFined) => 
+    api.put(`/individuals/${videoId}/${trackId}/fine`, { is_fined: isFined })
 
 // Search
 export const searchVideos = (date, shift = null, violationType = null) => {
@@ -130,18 +132,26 @@ export const stopLiveStream = () => api.post('/stream/stop')
 // Employees
 export const getEmployees = () => api.get('/employees')
 export const getEmployee = (employeeId) => api.get(`/employees/${employeeId}`)
-export const createEmployee = (name, photoFile) => {
+export const createEmployee = (name, photoFile, email, phone, department, role) => {
     const formData = new FormData()
     formData.append('name', name)
     if (photoFile) formData.append('photo', photoFile)
+    if (email) formData.append('email', email)
+    if (phone) formData.append('phone', phone)
+    if (department) formData.append('department', department)
+    if (role) formData.append('role', role)
     return api.post('/employees', formData, {
         headers: { 'Content-Type': 'multipart/form-data' },
     })
 }
-export const updateEmployee = (employeeId, name, photoFile) => {
+export const updateEmployee = (employeeId, name, photoFile, email, phone, department, role) => {
     const formData = new FormData()
     if (name) formData.append('name', name)
     if (photoFile) formData.append('photo', photoFile)
+    if (email) formData.append('email', email)
+    if (phone) formData.append('phone', phone)
+    if (department) formData.append('department', department)
+    if (role) formData.append('role', role)
     return api.put(`/employees/${employeeId}`, formData, {
         headers: { 'Content-Type': 'multipart/form-data' },
     })

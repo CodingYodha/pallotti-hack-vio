@@ -126,6 +126,11 @@ function EmployeeCard({ employee, onEdit, onDelete }) {
             <div className="employee-card-info">
                 <h3>{employee.name}</h3>
                 <span className="employee-card-id">ID: {employee.id}</span>
+                {employee.role && employee.department && (
+                    <span className="text-sm text-muted mt-1" style={{ fontSize: '0.75rem', display: 'block' }}>
+                        {employee.role} • {employee.department}
+                    </span>
+                )}
                 {employee.created_at && (
                     <span className="employee-card-date">
                         Added {new Date(employee.created_at).toLocaleDateString()}
@@ -147,6 +152,10 @@ function EmployeeCard({ employee, onEdit, onDelete }) {
 
 function EmployeeModal({ employee, onClose, onSave }) {
     const [name, setName] = useState(employee?.name || '')
+    const [email, setEmail] = useState(employee?.email || '')
+    const [phone, setPhone] = useState(employee?.phone || '')
+    const [department, setDepartment] = useState(employee?.department || '')
+    const [role, setRole] = useState(employee?.role || '')
     const [photoFile, setPhotoFile] = useState(null)
     const [photoPreview, setPhotoPreview] = useState(employee?.photo_path ? getImageUrl(employee.photo_path) : null)
     const [saving, setSaving] = useState(false)
@@ -173,9 +182,9 @@ function EmployeeModal({ employee, onClose, onSave }) {
 
         try {
             if (isEdit) {
-                await updateEmployee(employee.id, name.trim(), photoFile)
+                await updateEmployee(employee.id, name.trim(), photoFile, email.trim(), phone.trim(), department.trim(), role.trim())
             } else {
-                await createEmployee(name.trim(), photoFile)
+                await createEmployee(name.trim(), photoFile, email.trim(), phone.trim(), department.trim(), role.trim())
             }
             onSave()
         } catch (err) {
@@ -234,6 +243,56 @@ function EmployeeModal({ employee, onClose, onSave }) {
                             placeholder="Enter full name..."
                             autoFocus
                         />
+                    </div>
+
+                    <div className="grid-2 gap-4">
+                        <div className="form-group">
+                            <label htmlFor="emp-email">Email Address</label>
+                            <input
+                                id="emp-email"
+                                type="email"
+                                className="form-input"
+                                value={email}
+                                onChange={e => setEmail(e.target.value)}
+                                placeholder="Enter email address..."
+                            />
+                        </div>
+                        <div className="form-group">
+                            <label htmlFor="emp-phone">Phone Number</label>
+                            <input
+                                id="emp-phone"
+                                type="text"
+                                className="form-input"
+                                value={phone}
+                                onChange={e => setPhone(e.target.value)}
+                                placeholder="Enter phone number..."
+                            />
+                        </div>
+                    </div>
+
+                    <div className="grid-2 gap-4">
+                        <div className="form-group">
+                            <label htmlFor="emp-department">Department</label>
+                            <input
+                                id="emp-department"
+                                type="text"
+                                className="form-input"
+                                value={department}
+                                onChange={e => setDepartment(e.target.value)}
+                                placeholder="e.g. Construction"
+                            />
+                        </div>
+                        <div className="form-group">
+                            <label htmlFor="emp-role">Role / Designation</label>
+                            <input
+                                id="emp-role"
+                                type="text"
+                                className="form-input"
+                                value={role}
+                                onChange={e => setRole(e.target.value)}
+                                placeholder="e.g. Site Manager"
+                            />
+                        </div>
                     </div>
 
                     {error && (

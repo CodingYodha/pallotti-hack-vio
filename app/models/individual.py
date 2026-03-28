@@ -40,6 +40,10 @@ class TrackedIndividual(Base):
     # Risk assessment
     risk_score = Column(Float, default=0.0)  # Based on violation frequency/severity
     
+    # Fine status
+    is_fined = Column(Integer, default=0) # SQLite Boolean (0/1)
+    fine_amount = Column(Float, default=100.0)
+    
     # PPE worn by this individual (comma-separated list)
     worn_equipment = Column(String, default="")  # e.g., "helmet,gloves,boots"
     

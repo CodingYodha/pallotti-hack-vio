@@ -9,9 +9,10 @@ import {
     User,
     RefreshCw,
     Image,
-    UserPlus
+    UserPlus,
+    IndianRupee
 } from 'lucide-react'
-import { getIndividuals, getIndividual, analyzeIndividual, getViolations, getImageUrl } from '../services/api'
+import { getIndividuals, getIndividual, analyzeIndividual, getViolations, getImageUrl, toggleFine } from '../services/api'
 import { NamePersonModal } from './Employees'
 
 function Individuals() {
@@ -27,6 +28,7 @@ function Individuals() {
     const [loadingAnalysis, setLoadingAnalysis] = useState(false)
     const [violations, setViolations] = useState([])
     const [namingPerson, setNamingPerson] = useState(null) // { trackId, snapshotPath }
+    const [togglingFine, setTogglingFine] = useState(false)
 
     const fetchIndividuals = async () => {
         try {
@@ -87,6 +89,25 @@ function Individuals() {
             console.error(err)
         } finally {
             setLoadingAnalysis(false)
+        }
+    }
+
+    const handleToggleFine = async () => {
+        if (!selectedIndividual) return;
+        setTogglingFine(true)
+        try {
+            const newFinedState = !selectedIndividual.is_fined;
+            await toggleFine(videoId, selectedIndividual.track_id, newFinedState)
+            
+            // Re-fetch individual to get latest state or just optimistic local update
+            setSelectedIndividual(prev => ({ ...prev, is_fined: newFinedState }))
+            setIndividuals(prev => prev.map(i => i.id === selectedIndividual.id ? { ...i, is_fined: newFinedState } : i))
+            
+        } catch (error) {
+            console.error("Failed to toggle fine", error)
+            alert("Could not update fine status.")
+        } finally {
+            setTogglingFine(false)
         }
     }
 
@@ -205,6 +226,11 @@ function Individuals() {
                                                     {ind.total_violations >= 2 && (
                                                         <span className="badge badge-danger" style={{ fontSize: '0.65rem' }}>
                                                             Repeat
+                                                        </span>
+                                                    )}
+                                                    {ind.is_fined && (
+                                                        <span className="badge badge-warning flex items-center gap-1" style={{ fontSize: '0.65rem' }}>
+                                                            <IndianRupee size={10} /> Fined
                                                         </span>
                                                     )}
                                                 </div>
@@ -402,6 +428,24 @@ function Individuals() {
                                                 </div>
                                             </>
                                         )}
+                                        
+                                        {/* Fine Enforcement */}
+                                        <div className="flex items-center justify-between p-4 mt-6" style={{ background: 'var(--bg-tertiary)', borderRadius: 'var(--radius-md)', border: selectedIndividual.is_fined ? '1px solid var(--danger)' : '1px solid transparent' }}>
+                                            <div>
+                                                <h4 className="font-semibold flex items-center gap-2" style={{ margin: 0 }}>
+                                                    <IndianRupee size={16} className={selectedIndividual.is_fined ? "text-danger" : ""} />
+                                                    Implement Fine (₹100)
+                                                </h4>
+                                                <p className="text-sm text-muted mt-1" style={{ margin: 0 }}>Enforce a penalty for safety violations</p>
+                                            </div>
+                                            <button 
+                                                className={`btn ${selectedIndividual.is_fined ? 'btn-danger' : 'btn-secondary'}`}
+                                                onClick={handleToggleFine}
+                                                disabled={togglingFine}
+                                            >
+                                                {togglingFine ? 'Saving...' : selectedIndividual.is_fined ? 'Revoke Fine' : 'Implement Fine'}
+                                            </button>
+                                        </div>
                                     </>
                                 )}
 
