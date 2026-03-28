@@ -1,15 +1,93 @@
 import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
+from email.mime.application import MIMEApplication
 import logging
 from typing import Dict
 from app.config import settings
+import os
+import tempfile
+import subprocess
+import shutil
 
 logger = logging.getLogger(__name__)
+
+def generate_latex_report(profiles: Dict, duration: float, total_persons: int, total_violations: int, compliance_score: float, compliance_status: str, violation_counts: dict) -> str:
+    duration_mins = int(duration // 60)
+    duration_secs = int(duration % 60)
+    duration_str = f"{duration_mins}m {duration_secs}s" if duration_mins > 0 else f"{duration_secs}s"
+
+    parts = []
+    parts.append(r"""\documentclass{article}
+\usepackage[utf8]{inputenc}
+\usepackage{geometry}
+\geometry{a4paper, margin=1in}
+\usepackage{booktabs}
+\usepackage{xcolor}
+
+\title{\textbf{VioTrack Safety Compliance Report}}
+\author{Automated System Report}
+\date{\today}
+
+\begin{document}
+\maketitle
+
+\section*{Session Summary}
+\begin{itemize}""")
+    
+    parts.append(f"    \\item \\textbf{{Session Duration:}} {duration_str}")
+    parts.append(f"    \\item \\textbf{{Total Persons Tracked:}} {total_persons}")
+    parts.append(f"    \\item \\textbf{{Total Violations Detected:}} {total_violations}")
+    parts.append(f"    \\item \\textbf{{Compliance Score:}} {compliance_score:.0f}\\% ({compliance_status})")
+    
+    parts.append(r"\end{itemize}")
+
+    if total_violations > 0:
+        parts.append(r"""
+\section*{Violation Breakdown}
+\begin{table}[h]
+\centering
+\begin{tabular}{lc}
+\toprule
+\textbf{Violation Type} & \textbf{Incidents} \\
+\midrule""")
+        for v_type, count in sorted(violation_counts.items(), key=lambda x: x[1], reverse=True):
+            parts.append(f"{v_type} & {count} \\\\")
+            
+        parts.append(r"""\bottomrule
+\end{tabular}
+\end{table}
+
+\section*{Person Log (Violators Only)}
+\begin{table}[h]
+\centering
+\begin{tabular}{llp{8cm}}
+\toprule
+\textbf{Track ID} & \textbf{Violations} & \textbf{Details} \\
+\midrule""")
+        for tid, profile in profiles.items():
+            if profile.violation_count > 0:
+                details = ", ".join([f"{k} ({v})" for k, v in profile.violation_types.items()])
+                parts.append(f"Person-{tid} & {profile.violation_count} & {details} \\\\")
+                
+        parts.append(r"""\bottomrule
+\end{tabular}
+\end{table}""")
+    else:
+        parts.append(r"""
+\vspace{1cm}
+\begin{center}
+\textit{No safety violations were detected during this session. Great job!}
+\end{center}""")
+
+    parts.append(r"\end{document}")
+    
+    return "\n".join(parts)
 
 def send_batch_report_email(profiles: Dict, recipient: str, duration: float = 0.0):
     """
     Generate and send an HTML summary report of safety violations detected during the live stream.
+    Also generates a LaTeX report and attaches it as a PDF or .tex file.
     If SMTP server is not configured, it will print a mock email to the logger.
     """
     if not recipient:
@@ -45,8 +123,9 @@ def send_batch_report_email(profiles: Dict, recipient: str, duration: float = 0.
     duration_secs = int(duration % 60)
     duration_str = f"{duration_mins}m {duration_secs}s" if duration_mins > 0 else f"{duration_secs}s"
 
-    # Generate HTML Content
-    html_content = f"""
+    # Generate HTML Content (to serve as the email body)
+    html_parts = []
+    html_parts.append(f"""
     <html>
         <head>
             <style>
@@ -77,30 +156,32 @@ def send_batch_report_email(profiles: Dict, recipient: str, duration: float = 0.
             <div class="summary-box">
                 <p><strong>Session Duration:</strong> {duration_str}</p>
                 <p><strong>Total Persons Tracked:</strong> {total_persons}</p>
-                <p><strong>Total Violations Detected:</strong> <span class="{"danger" if total_violations > 0 else ""}">{total_violations}</span></p>
+                <p><strong>Total Violations Detected:</strong> <span class="{'danger' if total_violations > 0 else ''}">{total_violations}</span></p>
                 <p><strong>Compliance Score:</strong> <span style="color: {status_color}; font-weight: bold;">{compliance_score:.0f}% — {compliance_status}</span></p>
             </div>
-    """
+            
+            <p><strong>Note: A detailed LaTeX report is attached to this email.</strong></p>
+    """)
 
     if total_violations > 0:
-        html_content += """
+        html_parts.append("""
             <h2>Violation Breakdown</h2>
             <table>
                 <tr>
                     <th>Violation Type</th>
                     <th>Incidents</th>
                 </tr>
-        """
+        """)
         for v_type, count in sorted(violation_counts.items(), key=lambda x: x[1], reverse=True):
-            html_content += f"""
+            html_parts.append(f"""
                 <tr>
                     <td>{v_type}</td>
                     <td>{count}</td>
                 </tr>
-            """
-        html_content += "</table>"
+            """)
+        html_parts.append("</table>")
         
-        html_content += """
+        html_parts.append("""
             <h2>Person Log (Violators Only)</h2>
             <table>
                 <tr>
@@ -108,27 +189,54 @@ def send_batch_report_email(profiles: Dict, recipient: str, duration: float = 0.
                     <th>Violations</th>
                     <th>Details</th>
                 </tr>
-        """
+        """)
         for tid, profile in profiles.items():
             if profile.violation_count > 0:
                 details = ", ".join([f"{k} ({v})" for k, v in profile.violation_types.items()])
-                html_content += f"""
+                html_parts.append(f"""
                     <tr>
                         <td>Person-{tid}</td>
                         <td>{profile.violation_count}</td>
                         <td>{details}</td>
                     </tr>
-                """
-        html_content += "</table>"
+                """)
+        html_parts.append("</table>")
     else:
-        html_content += "<p><em>No safety violations were detected during this session. Great job!</em></p>"
+        html_parts.append("<p><em>No safety violations were detected during this session. Great job!</em></p>")
 
-    html_content += """
+    html_parts.append("""
             <br>
             <p style="font-size: 12px; color: #6b7280;">This is an automated safety report generated by VioTrack.</p>
         </body>
     </html>
-    """
+    """)
+    
+    html_content = "".join(html_parts)
+    
+    # Generate the LaTeX File representation
+    latex_content = generate_latex_report(
+        profiles, duration, total_persons, total_violations, 
+        compliance_score, compliance_status, violation_counts
+    )
+
+    pdf_path = None
+    tex_path = None
+    temp_dir = tempfile.mkdtemp()
+    
+    try:
+        tex_path = os.path.join(temp_dir, "report.tex")
+        with open(tex_path, "w", encoding="utf-8") as f:
+            f.write(latex_content)
+        
+        # Check if pdflatex exists to compile into a beautiful PDF
+        if shutil.which("pdflatex"):
+            subprocess.run(["pdflatex", "-interaction=nonstopmode", "-output-directory", temp_dir, tex_path], 
+                           check=True, capture_output=True)
+            candidate_pdf = os.path.join(temp_dir, "report.pdf")
+            if os.path.exists(candidate_pdf):
+                pdf_path = candidate_pdf
+    except Exception as e:
+        logger.error(f"Failed to generate latex pdf: {e}")
 
     # Check if SMTP is configured
     if not settings.SMTP_SERVER or not settings.SMTP_USERNAME or not settings.SMTP_PASSWORD:
@@ -136,7 +244,13 @@ def send_batch_report_email(profiles: Dict, recipient: str, duration: float = 0.
         logger.info(f"To: {recipient}")
         logger.info(f"Subject: [VioTrack] Live Stream Batch Report - {total_violations} Violations")
         logger.info("HTML Body generated successfully. Setup SMTP credentials in .env to actually send this over the internet.")
+        logger.info(f"LaTeX report generated at {tex_path}. PDF: {pdf_path}")
         logger.info(f"--- MOCK EMAIL END ---")
+        # Cleanup temp directory since mock email is used
+        try:
+            shutil.rmtree(temp_dir)
+        except:
+            pass
         return
 
     # Send the email via SMTP
@@ -146,8 +260,22 @@ def send_batch_report_email(profiles: Dict, recipient: str, duration: float = 0.
         msg["From"] = settings.SMTP_USERNAME
         msg["To"] = recipient
 
+        # Attach HTML Body
         part = MIMEText(html_content, "html")
         msg.attach(part)
+        
+        # Attach the LaTeX PDF (if compiled successfully)
+        if pdf_path and os.path.exists(pdf_path):
+            with open(pdf_path, "rb") as f:
+                attach_pdf = MIMEApplication(f.read(), _subtype="pdf")
+                attach_pdf.add_header('Content-Disposition', 'attachment', filename='VioTrack_Safety_Report.pdf')
+                msg.attach(attach_pdf)
+        # Fallback: Attach the raw .tex file
+        elif tex_path and os.path.exists(tex_path):
+            with open(tex_path, "rb") as f:
+                attach_tex = MIMEApplication(f.read(), _subtype="x-tex")
+                attach_tex.add_header('Content-Disposition', 'attachment', filename='VioTrack_Safety_Report.tex')
+                msg.attach(attach_tex)
 
         server = smtplib.SMTP(settings.SMTP_SERVER, settings.SMTP_PORT)
         server.starttls()
@@ -157,3 +285,10 @@ def send_batch_report_email(profiles: Dict, recipient: str, duration: float = 0.
         logger.info(f"Batch report email successfully sent to {recipient}")
     except Exception as e:
         logger.error(f"Failed to send email to {recipient}: {e}")
+    finally:
+        # Final cleanup for temp directory
+        try:
+            shutil.rmtree(temp_dir)
+        except:
+            pass
+
