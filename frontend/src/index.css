@@ -203,14 +203,13 @@ h3 {
   flex-direction: column;
 }
 
-/* Floating Navbar */
 .navbar {
   position: fixed;
   top: var(--space-4);
   left: 50%;
   transform: translateX(-50%);
   width: calc(100% - var(--space-8));
-  max-width: 1200px;
+  max-width: 1400px;
   background: var(--glass-bg);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
@@ -243,19 +242,20 @@ h3 {
 .navbar-nav {
   display: flex;
   align-items: center;
-  gap: var(--space-2);
+  gap: 1.2rem;
 }
 
 .nav-link {
   display: flex;
   align-items: center;
   gap: var(--space-2);
-  padding: var(--space-2) var(--space-4);
+  padding: 0.4rem 0.9rem;
   border-radius: var(--radius-full);
   color: var(--text-secondary);
   text-decoration: none;
   font-size: 0.9rem;
   font-weight: 500;
+  white-space: nowrap;
   transition: all var(--transition-fast);
 }
 
@@ -1994,19 +1994,25 @@ textarea.form-input {
   gap: var(--space-2);
   padding: var(--space-2) var(--space-4);
   border-radius: var(--radius-full);
-  background: var(--accent-muted);
-  color: var(--accent);
-  font-size: 0.8rem;
-  font-weight: 600;
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: #ffffff;
+  font-size: 0.85rem;
+  font-weight: 500;
   width: fit-content;
-  letter-spacing: 0.02em;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
 }
 
 .hero-badge-dot {
   width: 8px;
   height: 8px;
   border-radius: 50%;
-  background: var(--accent);
+  background: #38bdf8;
+  box-shadow: 0 0 8px #38bdf8;
   animation: pulse 2s infinite;
 }
 

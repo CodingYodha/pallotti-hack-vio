@@ -57,23 +57,36 @@ function StreamPanel({ stream, onChange, onRemove, totalStreams }) {
 
     return (
         <div
-            className="card overflow-hidden flex flex-col"
-            style={{ minHeight: 380, ...panelStyle }}
+            className="card"
+            style={{ minHeight: 400, display: 'flex', flexDirection: 'column', overflow: 'hidden', ...panelStyle }}
         >
             {/* Panel header */}
             <div
-                className="card-header flex items-center justify-between gap-2 py-3 px-4"
-                style={{ borderBottom: '1px solid var(--border-color)' }}
+                className="card-header"
+                style={{ 
+                    borderBottom: '1px solid var(--border-color)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    gap: '0.5rem',
+                    padding: '0.75rem 1rem'
+                }}
             >
-                <div className="flex items-center gap-2">
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                     <Activity size={16} style={{ color: 'var(--accent)' }} />
-                    <span className="font-semibold text-sm" style={{ color: 'var(--text-primary)' }}>
+                    <span style={{ fontWeight: 600, fontSize: '0.875rem', color: 'var(--text-primary)' }}>
                         Camera {stream.label || stream.streamId.slice(0, 6).toUpperCase()}
                     </span>
                     {status === 'live' && (
                         <span
-                            className="flex items-center gap-1 text-xs font-bold px-2 py-0.5 rounded-full"
                             style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '0.25rem',
+                                fontSize: '0.75rem',
+                                fontWeight: 'bold',
+                                padding: '0.125rem 0.5rem',
+                                borderRadius: '9999px',
                                 background: 'rgba(239,68,68,0.12)',
                                 color: '#ef4444',
                                 border: '1px solid rgba(239,68,68,0.25)'
@@ -94,7 +107,7 @@ function StreamPanel({ stream, onChange, onRemove, totalStreams }) {
                 {!isActive && totalStreams > 1 && (
                     <button
                         className="btn btn-danger btn-sm"
-                        style={{ padding: '4px 8px' }}
+                        style={{ padding: '0.25rem 0.5rem' }}
                         onClick={() => onRemove(id)}
                         title="Remove this stream"
                     >
@@ -105,19 +118,18 @@ function StreamPanel({ stream, onChange, onRemove, totalStreams }) {
 
             {/* Video area */}
             <div
-                className="flex-1 flex flex-col"
-                style={{ background: '#000', minHeight: 240 }}
+                style={{ flex: 1, display: 'flex', flexDirection: 'column', background: '#000', minHeight: 240 }}
             >
                 {status === 'idle' && (
-                    <div className="flex-1 flex flex-col items-center justify-center gap-3" style={{ color: '#555' }}>
+                    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '0.75rem', color: '#555' }}>
                         <WifiOff size={40} style={{ opacity: 0.5 }} />
-                        <p className="text-sm">Not connected</p>
+                        <p style={{ fontSize: '0.875rem' }}>Not connected</p>
                     </div>
                 )}
                 {status === 'connecting' && (
-                    <div className="flex-1 flex flex-col items-center justify-center gap-3" style={{ color: 'var(--accent)' }}>
+                    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '0.75rem', color: 'var(--accent)' }}>
                         <Loader size={36} className="animate-spin" />
-                        <p className="text-sm animate-pulse" style={{ color: '#fff' }}>Connecting…</p>
+                        <p style={{ fontSize: '0.875rem', animation: 'pulse 2s infinite', color: '#fff' }}>Connecting…</p>
                     </div>
                 )}
                 {status === 'live' && (
@@ -130,10 +142,10 @@ function StreamPanel({ stream, onChange, onRemove, totalStreams }) {
                     />
                 )}
                 {status === 'error' && (
-                    <div className="flex-1 flex flex-col items-center justify-center gap-3 px-6 text-center">
+                    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '0.75rem', padding: '0 1.5rem', textAlign: 'center' }}>
                         <AlertCircle size={40} style={{ color: 'var(--danger)', opacity: 0.8 }} />
-                        <p className="font-semibold text-sm" style={{ color: 'var(--danger)' }}>Connection Failed</p>
-                        <p className="text-xs" style={{ color: '#888' }}>
+                        <p style={{ fontWeight: 600, fontSize: '0.875rem', color: 'var(--danger)' }}>Connection Failed</p>
+                        <p style={{ fontSize: '0.75rem', color: '#888' }}>
                             Check the URL and ensure the phone is on the same network.
                         </p>
                     </div>
@@ -142,58 +154,66 @@ function StreamPanel({ stream, onChange, onRemove, totalStreams }) {
 
             {/* Controls */}
             <div
-                className="px-4 py-3 flex flex-col gap-2"
-                style={{ borderTop: '1px solid var(--border-color)', background: 'var(--bg-secondary)' }}
+                style={{ 
+                    borderTop: '1px solid var(--border-color)', 
+                    background: 'var(--bg-secondary)',
+                    padding: '1rem',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '1rem'
+                }}
             >
                 {/* URL input */}
-                <form onSubmit={handleConnect} className="flex gap-2">
+                <form onSubmit={handleConnect} style={{ display: 'flex', gap: '0.5rem', width: '100%' }}>
                     <input
                         type="text"
                         value={url}
                         onChange={e => onChange(id, { url: e.target.value })}
                         placeholder="http://ip:port/video  or  rtsp://ip:port/…"
-                        className="form-input flex-1"
-                        style={{ fontSize: '0.8rem', padding: '6px 10px' }}
+                        className="form-input"
+                        style={{ flex: 1, fontSize: '0.85rem', padding: '0.5rem 0.75rem', borderRadius: 'var(--radius-md)' }}
                         disabled={isActive}
                         required
                     />
                     {!isActive ? (
-                        <button type="submit" className="btn btn-primary btn-sm" style={{ whiteSpace: 'nowrap' }}>
-                            <Play size={13} /> Connect
+                        <button type="submit" className="btn btn-primary btn-sm" style={{ whiteSpace: 'nowrap', display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+                            <Play size={14} /> Connect
                         </button>
                     ) : (
                         <button
                             type="button"
                             className="btn btn-danger btn-sm"
-                            style={{ whiteSpace: 'nowrap' }}
+                            style={{ whiteSpace: 'nowrap', display: 'flex', alignItems: 'center', gap: '0.25rem' }}
                             onClick={handleDisconnect}
                         >
-                            <Square size={13} /> Stop
+                            <Square size={14} /> Stop
                         </button>
                     )}
                 </form>
 
                 {/* Optional email report */}
-                <label className="flex items-center gap-2 cursor-pointer" style={{ fontSize: '0.78rem' }}>
-                    <input
-                        type="checkbox"
-                        checked={sendEmail}
-                        onChange={e => onChange(id, { sendEmail: e.target.checked })}
-                        disabled={isActive}
-                        className="w-3.5 h-3.5"
-                    />
-                    <span style={{ color: 'var(--text-secondary)' }}>Email report on stop</span>
-                </label>
-                {sendEmail && !isActive && (
-                    <input
-                        type="email"
-                        value={email}
-                        onChange={e => onChange(id, { email: e.target.value })}
-                        placeholder="manager@example.com"
-                        className="form-input"
-                        style={{ fontSize: '0.78rem', padding: '5px 10px' }}
-                    />
-                )}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                    <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', fontSize: '0.85rem' }}>
+                        <input
+                            type="checkbox"
+                            checked={sendEmail}
+                            onChange={e => onChange(id, { sendEmail: e.target.checked })}
+                            disabled={isActive}
+                            style={{ width: '1rem', height: '1rem' }}
+                        />
+                        <span style={{ color: 'var(--text-secondary)' }}>Email report on stop</span>
+                    </label>
+                    {sendEmail && !isActive && (
+                        <input
+                            type="email"
+                            value={email}
+                            onChange={e => onChange(id, { email: e.target.value })}
+                            placeholder="manager@example.com"
+                            className="form-input"
+                            style={{ fontSize: '0.85rem', padding: '0.5rem 0.75rem', borderRadius: 'var(--radius-md)', width: '100%' }}
+                        />
+                    )}
+                </div>
             </div>
         </div>
     );
@@ -232,24 +252,26 @@ function LiveStream() {
     return (
         <div className="page-container">
             {/* Page header */}
-            <div className="page-header pb-4">
+            <div className="page-header" style={{ paddingBottom: '1.5rem' }}>
                 <div>
-                    <h1 className="page-title text-3xl font-bold flex items-center gap-3">
+                    <h1 className="page-title" style={{ fontSize: '1.875rem', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
                         <Activity size={30} style={{ color: 'var(--accent)' }} />
                         Multi-Camera Live Stream
                     </h1>
-                    <p className="page-description mt-1" style={{ color: 'var(--text-secondary)' }}>
+                    <p className="page-description" style={{ marginTop: '0.25rem', color: 'var(--text-secondary)' }}>
                         Connect up to {MAX_STREAMS} phones simultaneously for real-time multi-camera AI analysis.
                     </p>
                 </div>
 
                 {/* Action bar */}
-                <div className="flex items-center gap-3 mt-4 flex-wrap">
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginTop: '1.5rem', flexWrap: 'wrap' }}>
                     {/* Live indicator */}
                     {liveCount > 0 && (
                         <span
-                            className="flex items-center gap-2 text-sm font-bold px-3 py-1.5 rounded-full"
                             style={{
+                                display: 'flex', alignItems: 'center', gap: '0.5rem',
+                                fontSize: '0.875rem', fontWeight: 'bold',
+                                padding: '0.375rem 0.75rem', borderRadius: '9999px',
                                 background: 'rgba(239,68,68,0.12)',
                                 color: '#ef4444',
                                 border: '1px solid rgba(239,68,68,0.3)'
@@ -262,7 +284,8 @@ function LiveStream() {
 
                     {/* Add stream */}
                     <button
-                        className="btn btn-secondary flex items-center gap-2"
+                        className="btn btn-secondary"
+                        style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}
                         onClick={addStream}
                         disabled={streams.length >= MAX_STREAMS}
                         title={streams.length >= MAX_STREAMS ? `Max ${MAX_STREAMS} streams` : 'Add another stream'}
@@ -285,7 +308,7 @@ function LiveStream() {
 
                     {/* Stop all */}
                     {liveCount > 0 && (
-                        <button className="btn btn-danger flex items-center gap-2" onClick={stopAll}>
+                        <button className="btn btn-danger" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }} onClick={stopAll}>
                             <Square size={16} /> Stop All
                         </button>
                     )}
@@ -294,8 +317,9 @@ function LiveStream() {
 
             {/* How-to tip */}
             <div
-                className="flex gap-3 p-4 rounded-lg mb-6 text-sm"
                 style={{
+                    display: 'flex', gap: '0.75rem',
+                    padding: '1rem', borderRadius: 'var(--radius-lg)', marginBottom: '1.5rem', fontSize: '0.875rem',
                     background: 'var(--accent-muted)',
                     border: '1px solid var(--border-color)',
                     color: 'var(--text-primary)'
@@ -303,9 +327,9 @@ function LiveStream() {
             >
                 <Info size={18} style={{ color: 'var(--accent)', flexShrink: 0, marginTop: 2 }} />
                 <div>
-                    <span className="font-semibold">Quick setup: </span>
+                    <span style={{ fontWeight: 600 }}>Quick setup: </span>
                     Open <strong>IP Webcam</strong> on each Android phone → tap <em>Start server</em> → enter
-                    <code style={{ background: 'var(--bg-tertiary)', padding: '1px 6px', borderRadius: 4, margin: '0 4px' }}>
+                    <code style={{ background: 'var(--bg-tertiary)', padding: '2px 6px', borderRadius: '4px', margin: '0 4px', fontSize: '0.8rem', fontFamily: 'monospace' }}>
                         http://&lt;phone-ip&gt;:8080/video
                     </code>
                     in each panel below. All phones must be on the same WiFi.
@@ -313,7 +337,7 @@ function LiveStream() {
             </div>
 
             {/* Stream grid */}
-            <div style={{ display: 'grid', gridTemplateColumns: gridCols, gap: '1.25rem' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: gridCols, gap: '1.5rem' }}>
                 {streams.map(stream => (
                     <StreamPanel
                         key={stream.id}

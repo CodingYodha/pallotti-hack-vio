@@ -3,7 +3,9 @@ import { Link } from 'react-router-dom'
 import { ArrowRight, Shield, Eye, Users, Zap, BarChart3, Video, ChevronRight } from 'lucide-react'
 import { useLanguage } from '../context/LanguageContext'
 import { useAuth } from '../context/AuthContext'
-
+import DarkVeil from '../components/DarkVeil'
+import BorderGlow from '../components/BorderGlow'
+import Counter from '../components/Counter'
 function Landing() {
     const [currentSlide, setCurrentSlide] = useState(0)
     const { t } = useLanguage()
@@ -71,10 +73,10 @@ function Landing() {
     ]
 
     const stats = [
-        { value: '95%+', label: t('Detection Accuracy') },
-        { value: '30fps', label: t('Processing Speed') },
-        { value: '5+', label: t('PPE Categories') },
-        { value: '24/7', label: t('Monitoring') },
+        { value: 95, suffix: '%+', label: t('Detection Accuracy') },
+        { value: 30, suffix: 'fps', label: t('Processing Speed') },
+        { value: 5, suffix: '+', label: t('PPE Categories') },
+        { value: 24, suffix: '/7', label: t('Monitoring') },
     ]
 
     useEffect(() => {
@@ -85,10 +87,15 @@ function Landing() {
     }, [slides.length])
 
     return (
-        <div className="landing">
+        <div className="landing" style={{ backgroundImage: 'none', backgroundColor: 'transparent' }}>
+            <div style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100vh', zIndex: -1 }}>
+                <DarkVeil />
+            </div>
+
             {/* Hero Section */}
             <section className="landing-hero">
-                <div className="landing-hero-bg"></div>
+                <div className="landing-hero-bg">
+                </div>
 
                 <div className="landing-hero-content">
                     <div className="landing-hero-text">
@@ -160,7 +167,10 @@ function Landing() {
                 <div className="landing-stats-inner">
                     {stats.map((stat, i) => (
                         <div key={i} className="landing-stat">
-                            <span className="landing-stat-value">{stat.value}</span>
+                            <span className="landing-stat-value" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                <Counter value={stat.value} fontSize={32} />
+                                {stat.suffix}
+                            </span>
                             <span className="landing-stat-label">{stat.label}</span>
                         </div>
                     ))}
@@ -177,13 +187,13 @@ function Landing() {
                 </div>
                 <div className="landing-features-grid">
                     {features.map((feature, i) => (
-                        <div key={i} className="landing-feature-card">
+                        <BorderGlow key={i} className="landing-feature-card" backgroundColor="var(--bg-surface)" animated={false}>
                             <div className="landing-feature-icon" style={{ color: feature.color, background: `${feature.color}15` }}>
                                 {feature.icon}
                             </div>
                             <h3 className="landing-feature-title">{feature.title}</h3>
                             <p className="landing-feature-desc">{feature.description}</p>
-                        </div>
+                        </BorderGlow>
                     ))}
                 </div>
             </section>
